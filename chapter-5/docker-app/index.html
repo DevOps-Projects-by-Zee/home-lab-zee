@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DevOps Pipeline Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+        }
+        .server { 
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>DevOps Pipeline Success! Congratulations! You are a DevOps Engineer now!</h1>
+    <div class="server">
+        <h2>Server: <span id="hostname"></span></h2>
+        <p>Deployed with Terraform + Ansible + Docker</p>
+    </div>
+    <p>Refresh to see load balancing in action!</p>
+    
+    <script>
+        document.getElementById('hostname').textContent = window.location.hostname;
+    </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/focal64"
+  config.vm.hostname = "k3d-lab"
+  
+  # Forward Kubernetes API and app ports
+  config.vm.network "forwarded_port", guest: 6443, host: 6443  # K8s API
+  config.vm.network "forwarded_port", guest: 8080, host: 8084  # Apps (LoadBalancer)
+  config.vm.network "forwarded_port", guest: 8081, host: 8081  # HTTPS
+  
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "4096"
+    vb.cpus = 2
+    vb.name = "k3d-kubernetes-lab"
+  end
+  
+  config.vm.provision "shell", path: "setup-k3d.sh"
+end

@@ -1,0 +1,108 @@
+---
+# Install Docker on web servers
+- name: Configure Web Servers
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: Wait for apt lock to be released
+      wait_for:
+        timeout: 60
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Docker
+      apt:
+        name:
+          - docker.io
+          - docker-compose
+        state: present
+        update_cache: yes
+      retries: 3
+      delay: 10
+
+    - name: Start Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add vagrant user to docker group
+      user:
+        name: vagrant
+        groups: docker
+        append: yes
+
+
+    - name: Create app directory
+      file:
+        path: /home/vagrant/app
+        state: directory
+        owner: vagrant
+        group: vagrant
+
+    - name: Copy docker-compose file
+      copy:
+        src: ../docker-app/docker-compose.yml
+        dest: /home/vagrant/app/docker-compose.yml
+        owner: vagrant
+        group: vagrant
+
+    - name: Copy web content
+      copy:
+        src: ../docker-app/index.html
+        dest: /home/vagrant/app/index.html
+        owner: vagrant
+        group: vagrant
+
+    - name: Start application
+      shell: docker-compose up -d
+      args:
+        chdir: /home/vagrant/app
+
+# Configure load balancer
+- name: Configure Load Balancer
+  hosts: loadbalancer
+  become: yes
+  tasks:
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Configure Nginx as load balancer
+      copy:
+        content: |
+          upstream backend {
+              server 192.168.56.10:8080;
+              server 192.168.56.11:8080;
+          }
+
+          server {
+              listen 80;
+              
+              location / {
+                  proxy_pass http://backend;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+              }
+          }
+        dest: /etc/nginx/sites-available/loadbalancer
+        
+    - name: Enable load balancer config
+      file:
+        src: /etc/nginx/sites-available/loadbalancer
+        dest: /etc/nginx/sites-enabled/loadbalancer
+        state: link
+
+    - name: Remove default site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted

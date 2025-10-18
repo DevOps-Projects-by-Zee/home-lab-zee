@@ -1,0 +1,53 @@
+Vagrant.configure("2") do |config|
+  # Monitoring server
+  config.vm.define "monitor" do |mon|
+    mon.vm.box = "ubuntu/focal64"
+    mon.vm.hostname = "monitoring"
+    mon.vm.network "private_network", ip: "192.168.56.50"
+    mon.vm.network "forwarded_port", guest: 9090, host: 9090  # Prometheus
+    mon.vm.network "forwarded_port", guest: 3000, host: 3000  # Grafana
+    
+    mon.vm.provider "virtualbox" do |vb|
+      vb.memory = "2048"
+      vb.cpus = 2
+    end
+  end
+  
+  # App servers to monitor
+  (1..2).each do |i|
+    config.vm.define "app#{i}" do |app|
+      app.vm.box = "ubuntu/focal64"
+      app.vm.hostname = "app#{i}"
+      app.vm.network "private_network", ip: "192.168.56.#{60+i}"
+      
+      app.vm.provider "virtualbox" do |vb|
+        vb.memory = "1024"
+        vb.cpus = 1
+      end
+      
+      # Install node_exporter on app servers
+      app.vm.provision "shell", inline: <<-SHELL
+        wget https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz
+        tar xvfz node_exporter-1.7.0.linux-amd64.tar.gz
+        sudo mv node_exporter-1.7.0.linux-amd64/node_exporter /usr/local/bin/
+        
+        # Create systemd service
+        sudo tee /etc/systemd/system/node_exporter.service > /dev/null <<EOF
+[Unit]
+Description=Node Exporter
+
+[Service]
+User=vagrant
+ExecStart=/usr/local/bin/node_exporter
+
+[Install]
+WantedBy=multi-user.target
+EOF
+        
+        sudo systemctl daemon-reload
+        sudo systemctl start node_exporter
+        sudo systemctl enable node_exporter
+      SHELL
+    end
+  end
+end
