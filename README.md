@@ -333,20 +333,16 @@ Virtual Machines
 - [Ansible Docs](https://docs.ansible.com)
 - [Vagrant Docs](https://www.vagrantup.com/docs)
 
-### Community
-- **GitHub Issues**: Report bugs or ask questions
-- **Discussions**: Share your projects and learnings
-
 ---
 
 ## 📝 License & Credits
 
 **Build Your Own DevOps Lab** © 2025 Zudonu Osomudeya
 
-All rights reserved. See [LICENSE](LICENSE) for details.
+All rights reserved.
 
 **Author:**
-- Email: zee@shipwithzee.com
+- Email: talk2osomudeya@gmail.com
 - Website: shipwithzee.com
 - LinkedIn: [osomudeya-zudonu](https://www.linkedin.com/in/osomudeya-zudonu-17290b124/)
 - GitHub: [DevOps-Projects-by-Zee](https://github.com/DevOps-Projects-by-Zee/home-lab-zee)
