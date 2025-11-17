@@ -1,16 +1,47 @@
+# Terraform
+*.tfstate
+*.tfstate.backup
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
 
+# Vagrant
+.vagrant/
+.vagrant/
 
-#Ignore cursor AI rules
-.cursor/rules/codacy.mdc
+# Docker
+*.log
 
-# macOS
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
-# Codacy
-.codacy/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Node (if any)
+node_modules/
+npm-debug.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Local overrides
+local/
+override/
