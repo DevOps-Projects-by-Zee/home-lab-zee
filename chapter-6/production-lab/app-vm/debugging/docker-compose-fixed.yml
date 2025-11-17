@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  flask-app:
+    build: .
+    container_name: flask-app-fixed
+    ports:
+      - "5002:5000"     # Different port to avoid conflicts
+    environment:
+      - FLASK_ENV=production
+    networks:
+      - shared_network  # SAME network!
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: prometheus-fixed
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9092:9090"     # Different port to avoid conflicts
+    volumes:
+      - ./prometheus-fixed.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - shared_network  # SAME network!
+    restart: unless-stopped
+
+networks:
+  shared_network:       # Single network for communication
+    driver: bridge
+

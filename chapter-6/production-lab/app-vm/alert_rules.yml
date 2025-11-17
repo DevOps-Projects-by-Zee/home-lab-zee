@@ -1,0 +1,29 @@
+groups:
+- name: flask_app_alerts
+  rules:
+  - alert: HighResponseTime
+    expr: histogram_quantile(0.95, rate(flask_app_request_duration_seconds_bucket[5m])) > 2
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High response time detected"
+      description: "95th percentile response time is {{ $value }} seconds"
+
+  - alert: HighErrorRate  
+    expr: rate(flask_app_requests_total{status=~"5.."}[5m]) > 0.1
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "High error rate detected"
+      description: "Error rate is {{ $value }} errors per second"
+
+  - alert: AppDown
+    expr: up{job="flask-app"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Flask application is down"
+      description: "Flask app has been down for more than 1 minute"

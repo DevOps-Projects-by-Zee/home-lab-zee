@@ -1,0 +1,87 @@
+Vagrant.configure("2") do |config|
+  # VM1: Jenkins CI/CD Server
+  config.vm.define "jenkins" do |jenkins|
+    jenkins.vm.box = "ubuntu/focal64"
+    jenkins.vm.hostname = "jenkins-server"
+    jenkins.vm.network "private_network", ip: "192.168.56.10"
+    jenkins.vm.network "forwarded_port", guest: 8080, host: 8086
+    
+    jenkins.vm.provider "virtualbox" do |vb|
+      vb.memory = "2048"
+      vb.cpus = 2
+      vb.name = "jenkins-server"
+    end
+  end
+
+  # VM2: Application + Monitoring
+  config.vm.define "app" do |app|
+    app.vm.box = "ubuntu/focal64" 
+    app.vm.hostname = "app-server"
+    app.vm.network "private_network", ip: "192.168.56.11"
+    app.vm.network "forwarded_port", guest: 5000, host: 5006  # Flask app
+    app.vm.network "forwarded_port", guest: 3000, host: 3000  # Grafana
+    app.vm.network "forwarded_port", guest: 9090, host: 9090  # Prometheus
+    
+    app.vm.provider "virtualbox" do |vb|
+      vb.memory = "4096"
+      vb.cpus = 2
+      vb.name = "app-server"
+    end
+  end
+
+  # VM3: Database + Proxy
+  config.vm.define "database" do |db|
+    db.vm.box = "ubuntu/focal64"
+    db.vm.hostname = "database-server" 
+    db.vm.network "private_network", ip: "192.168.56.12"
+    db.vm.network "forwarded_port", guest: 5432, host: 5432  # PostgreSQL
+    db.vm.network "forwarded_port", guest: 80, host: 8081    # nginx
+    
+    db.vm.provider "virtualbox" do |vb|
+      vb.memory = "2048"
+      vb.cpus = 2
+      vb.name = "database-server"
+    end
+  end
+
+  # Install Docker on all VMs
+  config.vm.provision "shell", inline: <<-SHELL
+    # Wait for network to be ready
+    sleep 5
+    
+    # Update apt with retries to handle hash sum mismatches and network issues
+    for i in 1 2 3 4 5; do
+      apt-get update --allow-releaseinfo-change && break || sleep 10
+    done
+    
+    # Install packages with retries to handle network failures
+    for i in 1 2 3 4 5; do
+      apt-get install -y docker.io docker-compose git curl && break || sleep 10
+    done
+    
+    # Verify Docker was installed
+    if ! command -v docker &> /dev/null; then
+      echo "Docker installation failed, trying manual install..."
+      # Fallback: try installing just docker.io
+      for i in 1 2 3; do
+        apt-get install -y docker.io && break || sleep 10
+      done
+    fi
+    
+    # If docker-compose from apt fails, install manually
+    if ! command -v docker-compose &> /dev/null; then
+      echo "Installing docker-compose manually..."
+      curl -L "https://github.com/docker/compose/releases/download/v2.23.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose || true
+      chmod +x /usr/local/bin/docker-compose || true
+    fi
+    
+    # Only start Docker if it was successfully installed
+    if command -v docker &> /dev/null; then
+      systemctl start docker || true
+      systemctl enable docker || true
+      usermod -aG docker vagrant || true
+    else
+      echo "Warning: Docker was not installed successfully"
+    fi
+  SHELL
+end
