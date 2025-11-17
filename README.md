@@ -7,10 +7,16 @@ Complete setups, automation scripts, and real portfolio projects—no cloud bill
 
 A practical guide for engineers who want production-ready skills without burning money on AWS.
 
+## 📊 Architecture Overview
+
+![Complete DevOps Pipeline Architecture](./assets/architecture-simple.jpg)
+*Complete view of the DevOps pipeline from virtualization to production deployment*
+
 ---
 
 ## 📚 Quick Navigation
 
+- [📊 Architecture Overview](#-architecture-overview)
 - [🚀 Getting Started](#-getting-started)
 - [📖 Table of Contents](#-table-of-contents)
 - [🔧 Prerequisites](#-prerequisites)
